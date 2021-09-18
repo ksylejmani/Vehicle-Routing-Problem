@@ -1,0 +1,33 @@
+Toy example based on_c1_2_1
+
+VEHICLE CAPACITY
+100
+
+DEPOT
+XCOORD.    YCOORD.
+0           0     
+
+NOMBER OF DELIVERIES
+12
+
+DE. NO.  XCOORD.    YCOORD.    DEMAND   SERVICE TIME
+    1      33         78         20      90
+    2      59         52         20      90
+    3      10        137         30      90
+    4       4         28         10      90
+    5      25         26         20      90
+    6      86         37         10      90
+    7       1        109         10      90
+    8       6        135         40      90
+    9      32         79         20      90
+   10      24         26         20      90
+   11      86         36         20      90
+   12      95         35         10      90
+
+NOMBER OF PICKUPS
+3
+
+PI. NO.  XCOORD.    YCOORD.    DEMAND   SERVICE TIME
+    1      63         50         10     90
+    2     100        106         10     90
+    3      99        112         20     90
