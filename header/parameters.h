@@ -1,10 +1,10 @@
 #pragma once
+#include<ctime>
 // Algorithm parameters
-const double percentageOfComponents=0.3;
-const int hillClimbingLength=10;
+const double PERCENTAGE_OF_COMPONENTS=0.7;
+const int HILL_CLIMBING_LENGTH =500;
+const int REPLACE_EVENT_PROBABLITY = 10;
 
-// Input related parameter
 
 // Code related parameters
-const int encodedPickupEventID = -1; // Since there is only one pickup event,  within the solution, we encode/represent it with ID of value -1
-const unsigned int seed = 18092021;
+const unsigned int SEED = time(0);

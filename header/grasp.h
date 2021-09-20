@@ -5,28 +5,29 @@
 
 #include<map>
 
-class GRASP {
+class GRASP: Preprocess {
 private:
-	Input input;
-	double percentageOfComponents;
-	int hillClimbingLength;
-	int pickupEventID;
-
-	std::map<std::pair<int, int>, double> deliveryDistances;
-	std::map<int, double> pickupDistances;
-	std::map<int, double> startEndDistances;
+	std::vector<std::pair<double, std::pair<int, int>>> deliveryRestrictedCandidateList;
+	std::vector<std::pair<double, std::pair<int, int>>> pickupRestrictedCandidateList;
 
 	std::vector<std::pair<double, std::pair<int, int>>> getDeliveryRestrictedCandidateList();
-	std::vector<std::pair<double, int>> getPickupRestrictedCandidateList();
-
-
-	std::pair<double, std::pair<int, int>> selectDeliveryComponent(std::vector<std::pair<double, std::pair<int,
-		int>>>& restrictedCandidateList);
-	std::pair<double, int> selectPickupComponent(std::vector<std::pair<double, int>>& restrictedCandidateList);
+	std::vector<std::pair<double, std::pair<int, int>>> getPickupRestrictedCandidateList();
+	std::pair<double, std::pair<int, int>> selectDeliveryComponent(std::vector<std::pair<double, 
+		std::pair<int, int>>>& restrictedCandidateList);
+	std::pair<double, std::pair<int, int>> selectPickupComponent(const std::vector<std::pair<double, 
+		std::pair<int, int>>>& restrictedCandidateList);
+	std::pair<double, std::pair<int, int>> selectPickupComponent(std::multimap<int, int> pickupDemandComponents);
 	double calculateRouteLength(const std::vector<int>& routeEvents);
+	std::pair<bool,std::vector<int>> calculateRouteLoad(const std::vector<int>& routeEvents, const int& routePickupEvnet);
+	Solution _2OptMove(const Solution& s);
+	void reverseRouteSegement(std::vector<int>& routeEvents, const int& startIndex, const int& endIndex);
+	int getStartPointIndex(const std::vector<int>& route);
+	int findPickupEvent(const std::vector<int>& route, const int& pickupEventID);
+	void printRoute(std::vector<int> route);
+	void printDistances(std::vector<int> route);
+
 public:
-	GRASP(Input _input, double _percentageOfComponents, int _hillClimbingLength, int _pickupEventID);
+	GRASP(const Input& _input);
 	Solution construct();
-	Solution hillClimb();
 	Solution solve();
 };

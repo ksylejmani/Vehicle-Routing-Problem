@@ -5,11 +5,12 @@
 #include<iostream>
 #include<string>
 
-const std::string instanceName = "VRP solver/Vehicle-Routing-Problem/input/Toy example.txt";
+const std::string instanceName = "VRP solver/Vehicle-Routing-Problem/input/ToyExample.txt";
 
 int main() {
 	Input input = getInputFromFile(instanceName);
-	int pickupEventID = 0;
-	Preprocess p(input, pickupEventID);
+	Preprocess prepInput(input);
+	GRASP grasp(input);
+	grasp.solve();
 	return 0;
 }

@@ -37,36 +37,18 @@ Input getInputFromFile(const std::string& instanceName) {
 			for (int i = 1; i <= 2; i++)
 				std::getline(fileStream, currentLine);
 			
-			// Read Number of DELEVERIES
+			// Read Number of EVENTS
 			std::getline(fileStream, currentLine);
-			unsigned int numberOfDeliveries=getNumberFromText(currentLine);
+			unsigned int numberOfEvents=getNumberFromText(currentLine);
 
 			// Skip the metadata in the next two lines
 			for (int i = 1; i <= 2; i++)
 				std::getline(fileStream, currentLine);
 
-			// Read details of each DELIVERY
-			for (unsigned int i = 1; i <= numberOfDeliveries; i++) {
+			// Read details of each EVENT
+			for (unsigned int i = 1; i <= numberOfEvents; i++) {
 				std::getline(fileStream, currentLine);
 				deliveries.push_back(getEvent(currentLine));
-			}
-
-			// Skip the metadata in the next two lines
-			for (int i = 1; i <= 2; i++)
-				std::getline(fileStream, currentLine);
-
-			// Read Number of PICKUPS
-			std::getline(fileStream, currentLine);
-			unsigned int numberOfPickups = getNumberFromText(currentLine);
-
-			// Skip the metadata in the next two lines
-			for (int i = 1; i <= 2; i++)
-				std::getline(fileStream, currentLine);
-
-			// Read details of each PICKUP
-			for (unsigned int i = 1; i <= numberOfPickups; i++) {
-				std::getline(fileStream, currentLine);
-				pickups.push_back(getEvent(currentLine));
 			}
 		}
 		fileStream.close();
@@ -101,12 +83,12 @@ Event getEvent(const std::string& lineText) {
 	unsigned int id;
 	int xCoordinate, yCoordinate;
 	unsigned int demand;
-	unsigned int serviceTime;
+	bool isDelivery;
 	std::stringstream ss(lineText);
 	ss >> id; id--; // Convert id to a zero based index
 	ss >> xCoordinate; ss >> yCoordinate;
-	ss >> demand; ss >> serviceTime;
+	ss >> demand; ss >> isDelivery;
 	std::pair<int, int> coordinates(xCoordinate, yCoordinate);
-	Event ans(id, coordinates, demand, serviceTime);
+	Event ans(id, coordinates, demand, isDelivery);
 	return ans;
 }

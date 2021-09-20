@@ -2,37 +2,38 @@
 #include"input.h"
 
 #include<map>
-
-
+#include<unordered_map>
 
 class Preprocess {
-private:
+protected:
 	Input input;
-	int pickupEventID;
 
-	std::vector<int> routeEvents;
-	std::vector<std::pair<int, int>> interchangeEvents;
-	std::vector<int> substituteEvents;
-
-	std::map<std::pair<int, int>, double> deliveryDistances;
-	std::map<int, double> pickupDistances;
+	std::vector<int> primaryEvents;
+	std::vector<int> substitutingEvents;
+	std::vector<std::pair<int, int>> substitutingPairs;
+	std::unordered_map<int, std::vector<int>> eventMapping;
+	std::vector<int> pickupEvents;
+	std::map<std::pair<int, int>, double> distances;
 	std::map<int, double> startEndDistances;
-	std::multimap<double, std::pair<int, int>> deliveryComponents;
-	std::multimap<double, int> pickupComponents;
-	std::multimap<int, int> demandComponents;
+	std::multimap<double, std::pair<int, int>> deliveryDistanceComponents;
+	std::multimap<double, std::pair<int, int>> pickupDistanceComponents;
+	std::multimap<int, int> deliveryDemandComponents;
+	std::multimap<int, int> pickupDemandComponents;
 
-	std::multimap<int, int> createDemandComponents();
+	std::multimap<int, int> createDemandComponents(const bool& _isDemand);
 	void filterDeliveryEvents();
-	std::vector<int> getSubstituteEvents();
+	std::vector<int> getSubstitutingEvents();
 	bool areCandidates(int _event1ID, int _event2ID);
 	bool isCandidate(int _eventID);
+	std::unordered_map<int, std::vector<int>> getEventMapping();
+	std::vector<int> getPickupEvents();
+
 	double getDistance(const int& firstEvnetID, const int& secondEventID);
-	std::map<std::pair<int, int>, double> calculateDeliveryDistances();
-	std::map<int, double> calculatePickupDistances();
+	std::map<std::pair<int, int>, double> calculateDistances();
 	std::map<int, double> calculateStartEndDistances();
-	std::multimap<double, std::pair<int, int>> createDeliveryComponents(const std::map<std::pair<int, int>, double>& distances);
-	std::multimap<double, int> createPickupComponents(const std::map<int, double>& distances);
+	std::multimap<double, std::pair<int, int>> createDeliveryDistanceComponents();
+	std::multimap<double, std::pair<int, int>> createPickupDistanceComponents();
 
 public:
-	Preprocess(Input _input, int _pickupEventID);
+	Preprocess(Input _input);
 };
