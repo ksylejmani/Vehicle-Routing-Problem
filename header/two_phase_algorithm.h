@@ -25,4 +25,5 @@ private:
 public:
 	TwoPhaseAlgorithm(const Input& _input);
 	Solution solve();
+	void printSolution(const Solution& s);
 };

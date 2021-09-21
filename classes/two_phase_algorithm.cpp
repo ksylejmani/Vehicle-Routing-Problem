@@ -117,6 +117,46 @@ void TwoPhaseAlgorithm::printDistances(std::vector<int> route) {
 	std::cout << std::endl;
 }
 
+
+void TwoPhaseAlgorithm::printSolution(const Solution& s) {
+	std::cout << "\nSolution results\n";
+	std::cout << "Number of delivery events: " << s.routeEvents.size() -2 << std::endl; // Do not count start point and pickup event
+	std::cout << "Route length: " << s.routeLength << std::endl;
+	std::cout << "Route path (D-Delivery, P-Pickup):\n"
+		<< "Start - ";
+	for (int i = 1; i < s.routeEvents.size(); i++) {
+		if (s.routeEvents[i] == s.routePickupEvent) {
+			std::cout << "P" << s.routeEvents[i] + 1; // Revert to one based index (same below)
+		}
+		else {
+			std::cout << "D" << s.routeEvents[i]+1;
+		}
+		if (i < s.routeEvents.size() - 1) {
+			std::cout << " - ";
+		}
+		else {
+			std::cout << ".\n";
+		}
+	}
+	std::cout << "Route load:\n";
+	std::cout << "Start (" << s.routeLoad.second[0] << "), ";
+	for (int i = 1; i < s.routeLoad.second.size(); i++) {
+		if (s.routeEvents[i] == s.routePickupEvent) {
+			std::cout << "P" << s.routeEvents[i] + 1 << " ("<<s.routeLoad.second[i]<<")";
+		}
+		else {
+			std::cout << "D" << s.routeEvents[i]+1 << " (" << s.routeLoad.second[i] << ")";
+		}
+		if (i < s.routeEvents.size() - 1) {
+			std::cout << ", ";
+		}
+		else {
+			std::cout << ".\n";
+		}
+	}
+	std::cout << std::endl;
+}
+
 Solution TwoPhaseAlgorithm::twoOptMove(const Solution& s) {
 	/// <summary>
 	/// Applies two opt operator in the given solution (using the best improving version)
@@ -278,12 +318,7 @@ Solution TwoPhaseAlgorithm::solve() {
 		}
 		if (current.routeLength < best.routeLength) {
 			best = Solution(current);
-			this->printRoute(current.routeEvents);
-			std::cout << current.routeLength << std::endl;
 		}
 	}
-	std::cout << "Number of delivery events: " << best.routeEvents.size()-2 << std::endl;
-	std::cout << "Route length: " << best.routeLength << std::endl;
-	this->printRoute(best.routeEvents);
 	return best;
 }
