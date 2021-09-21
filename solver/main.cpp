@@ -5,7 +5,7 @@
 #include<iostream>
 #include<string>
 
-const std::string instanceName = "VRP solver/Vehicle-Routing-Problem/input/ToyExample.txt";
+const std::string instanceName = "VRP solver/Vehicle-Routing-Problem/input/Events1000.txt";
 
 int main() {
 	Input input = getInputFromFile(instanceName);

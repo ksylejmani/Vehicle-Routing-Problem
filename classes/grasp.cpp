@@ -11,7 +11,6 @@
 
 GRASP::GRASP(const Input& _input) :
 	Preprocess(_input){
-	//input = _input;
 	srand(SEED);
 	deliveryRestrictedCandidateList = this->getDeliveryRestrictedCandidateList();
 	pickupRestrictedCandidateList =	this->getPickupRestrictedCandidateList();
@@ -78,6 +77,7 @@ int GRASP::getStartPointIndex(const std::vector<int>& route) {
 			return i;
 		}
 	}
+	return -1;
 }
 int GRASP::findPickupEvent(const std::vector<int>& route, const int & pickupEventID) {
 	for (int i = 0; i < route.size(); i++) {
@@ -85,6 +85,7 @@ int GRASP::findPickupEvent(const std::vector<int>& route, const int & pickupEven
 			return i;
 		}
 	}
+	return -1;
 }
 
 // This first value in the pair returns whether the route is valid, whereas the second returns route load in specific events
@@ -122,20 +123,15 @@ Solution GRASP::construct() {
 		ans.routeEvents.push_back(*it);
 	}
 	
-	// Randomly shuffle solution
+	// Randomly shuffle delivery events
 	std::shuffle(ans.routeEvents.begin(), ans.routeEvents.end(), std::default_random_engine(SEED));
 
-	// Insert start point at the begining and a pickup event (selected at random at the end of the route)
+	// Insert start point at the begining of route and a pickup event (selected at random) at the end of the route
 	// so that the route is guaranted to be feasible (in terms of vehicle capacity)
 	ans.routeEvents.insert(ans.routeEvents.begin(),-1); // The start point is labeled with an index of -1
 	int rndPickupIndex = rand() % pickupEvents.size();
 	ans.routePickupEvent = pickupEvents[rndPickupIndex];
 	ans.routeEvents.push_back(ans.routePickupEvent);
-
-	// Mark events that are not in the route, but could be added
-	for (auto it = substitutingEvents.begin(); it != substitutingEvents.end(); it++) {
-		ans.nonRouteEvents.push_back(*it);
-	}
 
 	// Calculate route length, load and its feasiblity
 	ans.routeLength = this->calculateRouteLength(ans.routeEvents);
@@ -200,7 +196,13 @@ Solution GRASP::_2OptMove(const Solution& s) {
 			ans.routeLoad = this->calculateRouteLoad(ans.routeEvents, ans.routePickupEvent);
 		}
 	}
-	return ans;
+	// If new solution is feasible
+	if (ans.routeLoad.first) {
+		return ans;
+	}
+	else {
+		return s;
+	}
 }
 void GRASP::reverseRouteSegement(std::vector<int>& routeEvents, const int& startIndex, const int& endIndex) {
 	for (int i = startIndex; i < endIndex; i++) {
@@ -210,55 +212,110 @@ void GRASP::reverseRouteSegement(std::vector<int>& routeEvents, const int& start
 	}
 }
 
-Solution GRASP::solve() {
-	Solution current = this->construct();
-	Solution best(current);
-	for (int currentIteration = 1; currentIteration <= HILL_CLIMBING_LENGTH; currentIteration++) {
-		int replaceEventSelector =1+rand() % 100;
-		if (replaceEventSelector <= REPLACE_EVENT_PROBABLITY) {
-			// Replace delivery event
-			int rndIndex = rand() % substitutingPairs.size();
-			for (int i = rndIndex; i < substitutingPairs.size() + rndIndex; i++) {
-				std::pair<int, int> currentPair = substitutingPairs[rndIndex % substitutingPairs.size()];
-				bool eventReplaced = false;
-				for (int j = 0; j < current.routeEvents.size(); j++) {
-					if (current.routeEvents[j] == currentPair.first) {
-						auto it = std::find(current.routeEvents.begin(),
-							current.routeEvents.end(), currentPair.second);
-						if (it == current.routeEvents.end()) {
-							int temp = current.routeEvents[j];
-							current.routeEvents[j] = currentPair.second;
-							currentPair.first = currentPair.second;
-							currentPair.second = temp;
-							eventReplaced = true;
-							break;
-						}
+double GRASP::getLengthDifference(const std::vector<int>& route,const int& changeIndex, const int& firstEventID, const int& secondEventID) {
+	double ans;
+	double removeLength = getDistance(route[changeIndex - 1], firstEventID) +
+		getDistance(firstEventID, route[(changeIndex + 1) % route.size()]);
+	double addLength = getDistance(route[changeIndex - 1], secondEventID) +
+		getDistance(secondEventID, route[(changeIndex + 1) % route.size()]);
+	ans = addLength - removeLength;
+	return ans;
+}
+void GRASP::replaceDeliveryEvent(std::vector<int>& _route, double& _routeLength) {
+	/// <summary>
+	/// Replace the delivery event inplace by using the parameter referncing mechanism
+	/// </summary>
+	/// <param name="_route">List of events in the route</param>
+	/// <param name="_routeLength">Current route length</param>
+
+	// Replace an event with it pair if there are such pairs
+	if (substitutingPairs.size() > 0) {
+		int rndIndex = rand() % substitutingPairs.size();
+		for (int i = rndIndex; i < substitutingPairs.size() + rndIndex; i++) {
+			std::pair<int, int> currentPair = substitutingPairs[rndIndex % substitutingPairs.size()];
+			bool eventReplaced = false;
+			for (int j = 0; j < _route.size(); j++) {
+				if (_route[j] == currentPair.first) {
+					auto it = std::find(_route.begin(),
+						_route.end(), currentPair.second);
+					if (it == _route.end()) {
+						int removeEventID = _route[j];
+						int addEventID = currentPair.second;
+						_route[j] = addEventID;
+						currentPair.first = addEventID;
+						currentPair.second = removeEventID;
+						_routeLength += (this->getLengthDifference(_route, j, removeEventID, addEventID));
+						eventReplaced = true;
+						break;
 					}
 				}
-				if (eventReplaced) {
-					break;
-				}
-
 			}
+			if (eventReplaced) {
+				break;
+			}
+
+		}
+	}
+}
+
+void GRASP::replacePickupEvent(Solution& _s) {
+	/// <summary>
+	/// Replace the pickup event inplace by using the parameter referncing mechanism
+	/// </summary>
+	/// <param name="_route">List of events in the route</param>
+	/// <param name="_routePickupEvent">The ID of pickup event</param>
+	int pickupEventIndex = this->findPickupEvent(_s.routeEvents, _s.routePickupEvent);
+	int rndStartIndex = rand() % pickupEvents.size();
+	int removeRoutePickupEvent = _s.routePickupEvent;
+	for (int i = rndStartIndex; i < pickupEvents.size() + rndStartIndex; i++) {
+		int newRoutePickupEventID = (pickupEvents[rndStartIndex] != _s.routePickupEvent) ? (pickupEvents[rndStartIndex]) :
+			(pickupEvents[(rndStartIndex + 1) % pickupEvents.size()]);
+		int loadDifference = input.events[newRoutePickupEventID].demand - input.events[_s.routePickupEvent].demand;
+		if (_s.routeLoad.second[pickupEventIndex] + loadDifference <= input.vehicleCapacity) {
+			_s.routeEvents[pickupEventIndex] = newRoutePickupEventID;
+			_s.routePickupEvent = newRoutePickupEventID;
+			_s.routeLength += (this->getLengthDifference(_s.routeEvents,pickupEventIndex,removeRoutePickupEvent,newRoutePickupEventID));
+			_s.routeLoad.second[pickupEventIndex] += loadDifference;
+			break;
+		}
+	}
+}
+
+Solution GRASP::solve() {
+	/// <summary>
+	/// Solve the Vehicle Routing Problem using two phases: 1-Construction, and 2-Improvement
+	/// </summary>
+	/// <returns></returns>
+	Solution current = this->construct(); // Construction phase
+	Solution best(current);
+	for (int currentIteration = 1; currentIteration <= IMPROVEMENT_PHASE_LENGTH; currentIteration++) { // Improvement phase
+		int operatorSelector =1+rand() % 100;
+		if (operatorSelector <= TWO_OPT_OPERATOR_PROBABILITY) {
+			// Apply 2OptMove (using the best improving version)
+			current = _2OptMove(current);
+		}
+		else if (operatorSelector <= REPLACE_DELIVERY_EVENT_PROBABILITY) {
+			// Replace delivery event
+			this->replaceDeliveryEvent(current.routeEvents,current.routeLength);
 		}
 		else {
 			// Replace pickup event
-			int pickupEventIndex = this->findPickupEvent(current.routeEvents, current.routePickupEvent);
-			int rndIndex = rand() % pickupEvents.size();
-			current.routePickupEvent = (pickupEvents[rndIndex] != current.routePickupEvent) ? (pickupEvents[rndIndex]) :
-				(pickupEvents[(rndIndex + 1) % pickupEvents.size()]);
-			current.routeEvents[pickupEventIndex] = current.routePickupEvent;
+			this->replacePickupEvent(current);
 		}
-		// Apply 2OptMove by using the best improvming version
-		this->printRoute(current.routeEvents);
-		current = _2OptMove(current);
-		if (current.routeLoad.first && current.routeLength < best.routeLength) {
+		if (current.routeLength < best.routeLength) {
 			best = Solution(current);
+			this->printRoute(current.routeEvents);
 			std::cout << current.routeLength << std::endl;
 		}
 	}
 	std::cout << "Number of delivery events: " << best.routeEvents.size()-2 << std::endl;
-	std::cout << "Best route length: " << best.routeLength << std::endl;
+	std::cout << "Route length: " << best.routeLength << std::endl;
+	double testLength = best.routeLength;
+	double provedTestLength = this->calculateRouteLength(best.routeEvents);
+	if (abs(testLength - provedTestLength) > 0.001) {
+		std::cout << "Test";
+	}
+	this->printRoute(best.routeEvents);
 	return best;
 }
 

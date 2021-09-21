@@ -23,11 +23,14 @@ private:
 	void reverseRouteSegement(std::vector<int>& routeEvents, const int& startIndex, const int& endIndex);
 	int getStartPointIndex(const std::vector<int>& route);
 	int findPickupEvent(const std::vector<int>& route, const int& pickupEventID);
+	double getLengthDifference(const std::vector<int>& route, const int& changeIndex, const int& firstEventID, const int& secondEventID);
+	void replaceDeliveryEvent(std::vector<int>& route, double& routeLength);
+	void replacePickupEvent(Solution& s);
 	void printRoute(std::vector<int> route);
 	void printDistances(std::vector<int> route);
+	Solution construct();
 
 public:
 	GRASP(const Input& _input);
-	Solution construct();
 	Solution solve();
 };
