@@ -8,6 +8,12 @@
 #include<sstream>
 
 Input getInputFromFile(const std::string& instanceName) {
+	/// <summary>
+	/// Read instane data from the text file
+	/// </summary>
+	/// <param name="instanceName"></param>
+	/// <returns></returns>
+
 	unsigned int vehicleCapacity;
 	std::pair<int, int> depotCoordinates;
 	std::vector<Event> deliveries;
@@ -61,7 +67,6 @@ Input getInputFromFile(const std::string& instanceName) {
 	return ans;
 }
 
-
 unsigned int getNumberFromText(const std::string& lineText) {
 	std::string strTemp;
 	std::stringstream ss(lineText);
@@ -69,7 +74,6 @@ unsigned int getNumberFromText(const std::string& lineText) {
 	ss >> ans;
 	return ans;
 }
-
 
 std::pair<int, int> getDepotCoordinates(const std::string& lineText) {
 	int xCoordinate,yCoordinate;

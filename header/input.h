@@ -8,20 +8,37 @@ struct Event{
 	std::pair<int, int> coordinates;
 	unsigned int demand;
 	bool isDelivery;
-	Event():id(0),demand(0),isDelivery(false) {};
-	Event(const unsigned int& _id, const std::pair<int, int>& _coordinates,
-		const unsigned int& _demand, const unsigned int& _isDelivery) :
-		id(_id), coordinates(_coordinates), demand(_demand), isDelivery(_isDelivery) {};
+
+	Event():id(0),
+		demand(0),
+		isDelivery(false) {};
+
+	Event(const unsigned int& _id, 
+		const std::pair<int, 
+		int>& _coordinates,
+		const unsigned int& _demand, 
+		const unsigned int& _isDelivery) :
+		id(_id), 
+		coordinates(_coordinates), 
+		demand(_demand), 
+		isDelivery(_isDelivery) {};
 };
 struct Input
 {
 	unsigned int vehicleCapacity;
 	std::pair<int, int> depotCoordinates;
 	std::vector<Event> events;
+
 	Input():vehicleCapacity(0) {};
-	Input(const unsigned int& _vehicleCapacity, const std::pair<int, int>& _depotCoordinates,
-		const std::vector<Event>& _events, const std::vector<Event>& _pickups) :
-		vehicleCapacity(_vehicleCapacity), depotCoordinates(_depotCoordinates), events(_events){};
+
+	Input(const unsigned int& _vehicleCapacity, 
+		const std::pair<int, 
+		int>& _depotCoordinates,
+		const std::vector<Event>& _events, 
+		const std::vector<Event>& _pickups) :
+		vehicleCapacity(_vehicleCapacity), 
+		depotCoordinates(_depotCoordinates), 
+		events(_events){};
 };
 
 Input getInputFromFile(const std::string& instanceName);

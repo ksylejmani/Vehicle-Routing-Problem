@@ -1,4 +1,4 @@
-#include"../header/grasp.h"
+#include"../header/two_phase_algorithm.h"
 #include"../header/parameters.h"
 #include"../header/preprocess.h"
 
@@ -9,60 +9,12 @@
 #include<algorithm>
 
 
-GRASP::GRASP(const Input& _input) :
+TwoPhaseAlgorithm::TwoPhaseAlgorithm(const Input& _input) :
 	Preprocess(_input){
 	srand(SEED);
-	deliveryRestrictedCandidateList = this->getDeliveryRestrictedCandidateList();
-	pickupRestrictedCandidateList =	this->getPickupRestrictedCandidateList();
-
 }
 
-std::vector<std::pair<double, std::pair<int, int>>> GRASP::getDeliveryRestrictedCandidateList() {
-	std::vector<std::pair<double, std::pair<int, int>>> ans;
-	unsigned int numberOfCandidates = (int)(PERCENTAGE_OF_COMPONENTS * deliveryDistanceComponents.size());
-	unsigned int countCandidates = 0;
-	for (auto it = deliveryDistanceComponents.begin(); it != deliveryDistanceComponents.end(); it++) {
-		ans.push_back(*it);
-		countCandidates++;
-		if (countCandidates >= numberOfCandidates)
-			break;
-	}
-	
-	return ans;
-}
-
-std::vector<std::pair<double, std::pair<int, int>>> GRASP::getPickupRestrictedCandidateList() {
-	std::vector<std::pair<double, std::pair<int, int>>> ans;
-	unsigned int numberOfCandidates = (int)(PERCENTAGE_OF_COMPONENTS * pickupDistanceComponents.size());
-	unsigned int countCandidates = 0;
-	for (auto it = pickupDistanceComponents.begin(); it != pickupDistanceComponents.end(); it++) {
-		ans.push_back(*it);
-		countCandidates++;
-		if (countCandidates >= numberOfCandidates)
-			break;
-	}
-	return ans;
-}
-
-std::pair<double, std::pair<int, int>> GRASP::selectDeliveryComponent(
-	std::vector<std::pair<double, std::pair<int,int>>>& restrictedCandidateList) {
-	std::pair<double, std::pair<int, int>> ans;
-	int randomIndex = rand() % restrictedCandidateList.size();
-	ans = restrictedCandidateList[randomIndex];
-	return ans;
-}
-
-std::pair<double, std::pair<int, int>> GRASP::selectPickupComponent(
-	const std::vector<std::pair<double, std::pair<int, int>>>& restrictedCandidateList) {
-	std::pair<double, std::pair<int, int>> ans;
-	int randomIndex = rand() % restrictedCandidateList.size();
-	ans = restrictedCandidateList[randomIndex];
-	return ans;
-}
-
-
-
-double GRASP::calculateRouteLength(const std::vector<int>& routeEvents){
+double TwoPhaseAlgorithm::calculateRouteLength(const std::vector<int>& routeEvents){
 	double ans = 0;
 	for (unsigned int i = 0; i < routeEvents.size()-1; i++) {
 		ans += (getDistance(routeEvents[i], routeEvents[i + 1]));
@@ -71,7 +23,7 @@ double GRASP::calculateRouteLength(const std::vector<int>& routeEvents){
 	return ans;
 }
 
-int GRASP::getStartPointIndex(const std::vector<int>& route) {
+int TwoPhaseAlgorithm::getStartPointIndex(const std::vector<int>& route) {
 	for (int i = 0; i < route.size(); i++) {
 		if (route[i] == -1) {
 			return i;
@@ -79,7 +31,8 @@ int GRASP::getStartPointIndex(const std::vector<int>& route) {
 	}
 	return -1;
 }
-int GRASP::findPickupEvent(const std::vector<int>& route, const int & pickupEventID) {
+
+int TwoPhaseAlgorithm::findPickupEvent(const std::vector<int>& route, const int & pickupEventID) {
 	for (int i = 0; i < route.size(); i++) {
 		if (route[i] == pickupEventID) {
 			return i;
@@ -88,8 +41,14 @@ int GRASP::findPickupEvent(const std::vector<int>& route, const int & pickupEven
 	return -1;
 }
 
-// This first value in the pair returns whether the route is valid, whereas the second returns route load in specific events
-std::pair<bool, std::vector<int>> GRASP::calculateRouteLoad(const std::vector<int>& routeEvents, const int& routePickupEvnet) {
+std::pair<bool, std::vector<int>> TwoPhaseAlgorithm::calculateRouteLoad(const std::vector<int>& routeEvents, const int& routePickupEvnet) {
+	/// <summary>
+	/// Chechks and returns the route validity and load
+	/// </summary>
+	/// <param name="routeEvents"></param>
+	/// <param name="routePickupEvnet"></param>
+	/// <returns>The first value in the pair returns whether the route is valid, whereas the second returns route load in all individual events</returns>
+	
 	std::pair<bool, std::vector<int>>ans;
 	int N = routeEvents.size();
 	ans.first = true;
@@ -115,7 +74,11 @@ std::pair<bool, std::vector<int>> GRASP::calculateRouteLoad(const std::vector<in
 	return ans;
 }
 
-Solution GRASP::construct() {
+Solution TwoPhaseAlgorithm::construct() {
+	/// <summary>
+	/// Constructs a solution by inserting maximum possible delivery events
+	/// </summary>
+	/// <returns></returns>
 	Solution ans ;
 
 	// Insert delivery events based on their demand in non-decreasing order
@@ -139,14 +102,14 @@ Solution GRASP::construct() {
 	return ans;
 }
 
-void GRASP::printRoute(std::vector<int> route) {
+void TwoPhaseAlgorithm::printRoute(std::vector<int> route) {
 	for (int i = 0; i < route.size(); i++) {
 		std::cout << route[i] << " ";
 	}
 	std::cout << std::endl;
 }
 
-void GRASP::printDistances(std::vector<int> route) {
+void TwoPhaseAlgorithm::printDistances(std::vector<int> route) {
 	for (int i = 0; i < route.size() - 1; i++) {
 		std::cout << getDistance(route[i], route[i + 1]) << " ";
 	}
@@ -154,7 +117,13 @@ void GRASP::printDistances(std::vector<int> route) {
 	std::cout << std::endl;
 }
 
-Solution GRASP::_2OptMove(const Solution& s) {
+Solution TwoPhaseAlgorithm::twoOptMove(const Solution& s) {
+	/// <summary>
+	/// Applies two opt operator in the given solution (using the best improving version)
+	/// </summary>
+	/// <param name="s"></param>
+	/// <returns></returns>
+	
 	Solution ans(s);
 	struct BestMove{
 		int i = -1, j = -1;
@@ -196,7 +165,7 @@ Solution GRASP::_2OptMove(const Solution& s) {
 			ans.routeLoad = this->calculateRouteLoad(ans.routeEvents, ans.routePickupEvent);
 		}
 	}
-	// If new solution is feasible
+	// If the new solution is feasible return it
 	if (ans.routeLoad.first) {
 		return ans;
 	}
@@ -204,7 +173,8 @@ Solution GRASP::_2OptMove(const Solution& s) {
 		return s;
 	}
 }
-void GRASP::reverseRouteSegement(std::vector<int>& routeEvents, const int& startIndex, const int& endIndex) {
+
+void TwoPhaseAlgorithm::reverseRouteSegement(std::vector<int>& routeEvents, const int& startIndex, const int& endIndex) {
 	for (int i = startIndex; i < endIndex; i++) {
 		int temp = routeEvents[i];
 		routeEvents[i] = routeEvents[endIndex - (i - startIndex)];
@@ -212,7 +182,7 @@ void GRASP::reverseRouteSegement(std::vector<int>& routeEvents, const int& start
 	}
 }
 
-double GRASP::getLengthDifference(const std::vector<int>& route,const int& changeIndex, const int& firstEventID, const int& secondEventID) {
+double TwoPhaseAlgorithm::getLengthDifference(const std::vector<int>& route,const int& changeIndex, const int& firstEventID, const int& secondEventID) {
 	double ans;
 	double removeLength = getDistance(route[changeIndex - 1], firstEventID) +
 		getDistance(firstEventID, route[(changeIndex + 1) % route.size()]);
@@ -221,9 +191,10 @@ double GRASP::getLengthDifference(const std::vector<int>& route,const int& chang
 	ans = addLength - removeLength;
 	return ans;
 }
-void GRASP::replaceDeliveryEvent(std::vector<int>& _route, double& _routeLength) {
+
+void TwoPhaseAlgorithm::replaceDeliveryEvent(std::vector<int>& _route, double& _routeLength) {
 	/// <summary>
-	/// Replace the delivery event inplace by using the parameter referncing mechanism
+	/// Replace the delivery event in place by using the parameter referencing mechanism
 	/// </summary>
 	/// <param name="_route">List of events in the route</param>
 	/// <param name="_routeLength">Current route length</param>
@@ -258,12 +229,13 @@ void GRASP::replaceDeliveryEvent(std::vector<int>& _route, double& _routeLength)
 	}
 }
 
-void GRASP::replacePickupEvent(Solution& _s) {
+void TwoPhaseAlgorithm::replacePickupEvent(Solution& _s) {
 	/// <summary>
-	/// Replace the pickup event inplace by using the parameter referncing mechanism
+	/// Replace the pickup event in place by using the parameter referencing mechanism
 	/// </summary>
 	/// <param name="_route">List of events in the route</param>
 	/// <param name="_routePickupEvent">The ID of pickup event</param>
+	
 	int pickupEventIndex = this->findPickupEvent(_s.routeEvents, _s.routePickupEvent);
 	int rndStartIndex = rand() % pickupEvents.size();
 	int removeRoutePickupEvent = _s.routePickupEvent;
@@ -281,18 +253,20 @@ void GRASP::replacePickupEvent(Solution& _s) {
 	}
 }
 
-Solution GRASP::solve() {
+Solution TwoPhaseAlgorithm::solve() {
 	/// <summary>
 	/// Solve the Vehicle Routing Problem using two phases: 1-Construction, and 2-Improvement
+	/// The generated solution is optimized for visiting maximum possible delivery events with an optimized route length
 	/// </summary>
 	/// <returns></returns>
+	
 	Solution current = this->construct(); // Construction phase
 	Solution best(current);
 	for (int currentIteration = 1; currentIteration <= IMPROVEMENT_PHASE_LENGTH; currentIteration++) { // Improvement phase
 		int operatorSelector =1+rand() % 100;
 		if (operatorSelector <= TWO_OPT_OPERATOR_PROBABILITY) {
-			// Apply 2OptMove (using the best improving version)
-			current = _2OptMove(current);
+			// Apply TwoOptMove
+			current = twoOptMove(current);
 		}
 		else if (operatorSelector <= REPLACE_DELIVERY_EVENT_PROBABILITY) {
 			// Replace delivery event
@@ -310,12 +284,6 @@ Solution GRASP::solve() {
 	}
 	std::cout << "Number of delivery events: " << best.routeEvents.size()-2 << std::endl;
 	std::cout << "Route length: " << best.routeLength << std::endl;
-	double testLength = best.routeLength;
-	double provedTestLength = this->calculateRouteLength(best.routeEvents);
-	if (abs(testLength - provedTestLength) > 0.001) {
-		std::cout << "Test";
-	}
 	this->printRoute(best.routeEvents);
 	return best;
 }
-

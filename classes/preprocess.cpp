@@ -9,17 +9,12 @@
 
 Preprocess::Preprocess(Input _input):
 	input(_input) {
-
 	srand(SEED);
 	deliveryDemandComponents = this->createDemandComponents(true);
-	pickupDemandComponents = this->createDemandComponents(false);
 	filterDeliveryEvents();
 	substitutingEvents = this->getSubstitutingEvents();
-	eventMapping = this->getEventMapping();
 	distances = this->calculateDistances();
 	startEndDistances = this->calculateStartEndDistances();
-	deliveryDistanceComponents = this->createDeliveryDistanceComponents();
-	pickupDistanceComponents = this->createPickupDistanceComponents();
 	pickupEvents = this->getPickupEvents();
 }
 
@@ -32,8 +27,13 @@ std::multimap<int, int> Preprocess::createDemandComponents(const bool& _isDemand
 	return ans;
 }
 
-
 void Preprocess::filterDeliveryEvents() {
+	/// <summary>
+	/// This procedure does two operations:
+	/// 1. Sorts the delivery events based on their demand, so that it be easily calculated what is the maximum number of delivery events that can visited
+	/// 2. Make a list of pairs of delivery events which can substitute one another in reference to their demand values
+	/// </summary>
+	
 	double vehicleLoad = 0;
 	// Get list of Delivery events in non decreaing order of capacity, which can be loaded into the vehicle
 	std::multimap<int, int>::iterator it;
@@ -95,10 +95,13 @@ double Preprocess::getDistance(const int& firstEvnetID, const int& secondEventID
 	return ans;
 }
 
-
 std::map<std::pair<int, int>, double> Preprocess::calculateDistances() {
+	/// <summary>
+	/// Calculate distances between events
+	/// </summary>
+	/// <returns></returns>
+	
 	std::map<std::pair<int, int>, double> ans;
-	// Calculate distances between events
 	for (unsigned int leftEventID = 0; leftEventID < input.events.size() - 1; leftEventID++) {
 		for (unsigned int rightEventID = leftEventID + 1; rightEventID < input.events.size(); rightEventID++) {
 			// See whether both events are part of primaryEvents or substituting Events (i.e. candidates),
@@ -116,8 +119,12 @@ std::map<std::pair<int, int>, double> Preprocess::calculateDistances() {
 }
 
 std::map<int, double> Preprocess::calculateStartEndDistances() {
+	/// <summary>
+	/// Calculate distances between start/end point and events
+	/// </summary>
+	/// <returns></returns>
+	
 	std::map<int, double> ans;
-	// Calculate distances between start/end point and events
 	for (unsigned int eventID = 0; eventID < input.events.size(); eventID++) {
 		// See whether the event is part of primaryEvents or substitutingEvents (i.e. candidates),
 		// Or it is a pickup event
@@ -156,7 +163,6 @@ bool Preprocess::areCandidates(int _event1ID, int _event2ID) {
 	}
 }
 
-
 std::multimap<double, std::pair<int, int>> Preprocess::createDeliveryDistanceComponents() {
 	std::multimap<double, std::pair<int, int>> ans;
 	for (auto it = distances.begin(); it != distances.end(); it++) {
@@ -166,7 +172,6 @@ std::multimap<double, std::pair<int, int>> Preprocess::createDeliveryDistanceCom
 	}
 	return ans;
 }
-
 
 bool Preprocess::isCandidate(int _eventID) {
 	auto p1RE = std::find(primaryEvents.begin(), primaryEvents.end(), _eventID);
