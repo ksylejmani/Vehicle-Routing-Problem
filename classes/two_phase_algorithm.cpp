@@ -308,7 +308,8 @@ Solution TwoPhaseAlgorithm::solve() {
 			// Apply TwoOptMove
 			current = twoOptMove(current);
 		}
-		else if (operatorSelector <= REPLACE_DELIVERY_EVENT_PROBABILITY) {
+		else if (operatorSelector <= REPLACE_DELIVERY_EVENT_PROBABILITY+
+			TWO_OPT_OPERATOR_PROBABILITY) {
 			// Replace delivery event
 			this->replaceDeliveryEvent(current.routeEvents,current.routeLength);
 		}

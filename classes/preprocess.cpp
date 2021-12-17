@@ -47,7 +47,7 @@ void Preprocess::filterDeliveryEvents() {
 		}
 	}
 
-	// Get the list of Delivery events which can subsitute a given event in the route (a.k.a. spareEvents)
+	// Get the list of Delivery events which can substitute a given event in the route (a.k.a. spareEvents)
 	if (it != deliveryDemandComponents.end()) {
 		std::multimap<int, int>::iterator spareIt = it;
 		spareIt++;
